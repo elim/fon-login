@@ -19,9 +19,10 @@
 #% ./fonlogin
 #
 
+require 'logger'
 require 'rubygems'
 require 'mechanize'
-require 'logger'
+require 'pit'
 
 class FonLogin
   def initialize(opts = {})
@@ -32,43 +33,47 @@ class FonLogin
       a.log              = Logger.new(opts[:log_output])
       a.log.level        = opts[:log_level]
     end
+    @config = Pit.get("fon.com", :require => {
+	"username" => "your email in fon",
+	"password" => "your password in fon",
+      })
   end
 
   def run
-    if @email
-      try_logout
-    else 
-      STDERR.puts('Oops. Please. email.')
-    end
+    logout_and_login
   end
-  
+
   private
   def fetch(uri)
     begin
       sleep 2 #wait
       @agent.get(uri)
     rescue Timeout::Error
-      @agent.log.warn "  caught Timeout::Error !"
+      @agent.log.warn "caught Timeout::Error !"
       retry
     rescue WWW::Mechanize::ResponseCodeError => e
       case e.response_code
-      when "502"
-        @agent.log.warn "  caught Net::HTTPBadGateway !"
+      when '502'
+        @agent.log.warn "caught Net::HTTPBadGateway !"
         retry
-      when "404"
-        @agent.log.warn "  caught Net::HTTPNotFound !"
+      when '404'
+        @agent.log.warn "caught Net::HTTPNotFound !"
       else
-        @agent.log.warn "  caught Excepcion !" + e.response_code
+        @agent.log.warn "caught Excepcion !" + e.response_code
       end
     end
   end
 
-  def try_logout
-    
+  def logout_and_login
+    page = fetch('https://www.fon.com/en/userzone/logout')
+    login_form = page.forms.first
+    login_form['login_email'] = @config['username']
+    login_form['login_password'] =@config['password']
+    require 'pp'
+    result =  @agent.submit(login_form)
+    puts result.root.to_html
   end
-
 end
-
 
 if $0 == __FILE__
   require 'optparse'
@@ -81,14 +86,6 @@ if $0 == __FILE__
 
   OptionParser.new do |parser|
     parser.instance_eval do
-      on('-e email', '--email=email', 'Registered e-mail address') do |arg|
-        opts[:target] = arg
-      end
-
-      on('-p password', '--password=password', 'password') do |arg|
-        opts[:log_level] = Logger::INFO
-      end
-
       on('-v', '--verbose', 'verbose mode') do |arg|
         opts[:log_level] = Logger::INFO
       end
@@ -100,5 +97,5 @@ if $0 == __FILE__
     end
   end
   
-  MuxTapeSnatcher.new(opts).run
+  FonLogin.new(opts).run
 end
