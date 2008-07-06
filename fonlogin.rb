@@ -26,7 +26,6 @@ require 'pit'
 
 class FonLogin
   def initialize(opts = {})
-    @email = opts[:email]
     @agent  = WWW::Mechanize.new do |a|
       a.max_history      = 1
       a.user_agent_alias = 'Mac FireFox'
