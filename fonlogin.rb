@@ -40,7 +40,7 @@ class FonLogin
   end
 
   def run
-    logout_and_login
+    login
   end
 
   private
@@ -64,7 +64,7 @@ class FonLogin
     end
   end
 
-  def logout_and_login
+  def login
     page = fetch('http://www.example.net/')
     login_form = page.forms.first
 
