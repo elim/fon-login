@@ -65,13 +65,14 @@ class FonLogin
   end
 
   def logout_and_login
-    page = fetch('https://www.fon.com/en/userzone/logout')
+    page = fetch('http://www.example.net/')
     login_form = page.forms.first
-    login_form['login_email'] = @config['username']
-    login_form['login_password'] =@config['password']
-    require 'pp'
-    result =  @agent.submit(login_form)
-    puts result.root.to_html
+
+    if login_form
+      login_form['login_email'] = @config['username']
+      login_form['login_password'] =@config['password']
+      result =  @agent.submit(login_form)
+    end
   end
 end
 
