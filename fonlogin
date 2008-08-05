@@ -45,7 +45,6 @@ class FonLogin
   private
   def fetch(uri)
     begin
-      sleep 2 #wait
       @agent.get(uri)
     rescue Timeout::Error
       @agent.log.warn "caught Timeout::Error !"
@@ -99,3 +98,4 @@ if $0 == __FILE__
   
   FonLogin.new(opts).run
 end
+1
